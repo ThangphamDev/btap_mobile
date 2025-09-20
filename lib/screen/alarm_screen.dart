@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:async';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -109,6 +110,18 @@ class _AlarmScreenState extends State<AlarmScreen> {
       _alarmSet = true;
     });
     await _showNotification(alarmDateTime);
+
+    // Mở ứng dụng đồng hồ hệ thống để đặt báo thức thật
+    final uri = Uri.parse(
+      'intent://com.android.deskclock#Intent;action=android.intent.action.SET_ALARM;Sandroid.intent.extra.alarm.MESSAGE=Báo thức AI;Iandroid.intent.extra.alarm.HOUR=$hour;Iandroid.intent.extra.alarm.MINUTES=$minute;end',
+    );
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    } catch (e) {
+      // ignore nếu không mở được
+    }
   }
 
   Future<void> _showNotification(DateTime dateTime) async {

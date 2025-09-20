@@ -14,17 +14,19 @@ class MLKitTranslateScreen extends StatefulWidget {
 class _MLKitTranslateScreenState extends State<MLKitTranslateScreen> {
   final TextEditingController _inputController = TextEditingController();
   String _translatedText = '';
-  late final OnDeviceTranslator _translator;
+  late OnDeviceTranslator _translator;
   stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
   String _voiceText = '';
+  TranslateLanguage _sourceLang = TranslateLanguage.vietnamese;
+  TranslateLanguage _targetLang = TranslateLanguage.english;
 
   @override
   void initState() {
     super.initState();
     _translator = OnDeviceTranslator(
-      sourceLanguage: TranslateLanguage.vietnamese,
-      targetLanguage: TranslateLanguage.english,
+      sourceLanguage: _sourceLang,
+      targetLanguage: _targetLang,
     );
   }
 
@@ -33,6 +35,16 @@ class _MLKitTranslateScreenState extends State<MLKitTranslateScreen> {
     _translator.close();
     _inputController.dispose();
     super.dispose();
+  }
+
+  Future<void> _updateTranslator() async {
+    await _translator.close();
+    setState(() {
+      _translator = OnDeviceTranslator(
+        sourceLanguage: _sourceLang,
+        targetLanguage: _targetLang,
+      );
+    });
   }
 
   Future<void> _translateText(String text) async {
@@ -88,6 +100,64 @@ class _MLKitTranslateScreenState extends State<MLKitTranslateScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<TranslateLanguage>(
+                      value: _sourceLang,
+                      decoration: const InputDecoration(
+                        labelText: 'Ngôn ngữ nguồn',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: TranslateLanguage.vietnamese,
+                          child: Text('Tiếng Việt'),
+                        ),
+                        DropdownMenuItem(
+                          value: TranslateLanguage.english,
+                          child: Text('Tiếng Anh'),
+                        ),
+                      ],
+                      onChanged: (lang) async {
+                        if (lang != null && lang != _sourceLang) {
+                          _sourceLang = lang;
+                          await _updateTranslator();
+                        }
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(Icons.arrow_forward, color: Colors.blue),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<TranslateLanguage>(
+                      value: _targetLang,
+                      decoration: const InputDecoration(
+                        labelText: 'Ngôn ngữ đích',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: TranslateLanguage.vietnamese,
+                          child: Text('Tiếng Việt'),
+                        ),
+                        DropdownMenuItem(
+                          value: TranslateLanguage.english,
+                          child: Text('Tiếng Anh'),
+                        ),
+                      ],
+                      onChanged: (lang) async {
+                        if (lang != null && lang != _targetLang) {
+                          _targetLang = lang;
+                          await _updateTranslator();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
               TextField(
                 controller: _inputController,
                 decoration: const InputDecoration(

@@ -1,3 +1,6 @@
+dependencies {
+    add("coreLibraryDesugaring", "com.android.tools:desugar_jdk_libs:2.0.4")
+}
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -8,11 +11,12 @@ plugins {
 android {
     namespace = "com.example.pham_xuan_thang"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -42,3 +46,6 @@ android {
 flutter {
     source = "../.."
 }
+
+// Lưu ý: Bạn cần thêm dòng sau vào block dependencies trong file android/build.gradle hoặc build.gradle.kts (project-level):
+// coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
