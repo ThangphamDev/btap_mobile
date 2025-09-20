@@ -16,19 +16,33 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  bool _hasActiveAlarm = false;
 
-  final List<Widget> _widgetOptions = <Widget>[
-    AlarmScreen(),
-    MLKitTranslateScreen(),
-    CameraTranslateScreen(),
-    GroupInfoScreen(),
-    InformationScreen(),
-    SettingsScreen(),
-  ];
+  // Tạo các widget một lần để duy trì trạng thái
+  late final List<Widget> _widgetOptions;
+
+  @override
+  void initState() {
+    super.initState();
+    _widgetOptions = <Widget>[
+      AlarmScreen(onAlarmStatusChanged: _updateAlarmStatus),
+      MLKitTranslateScreen(),
+      CameraTranslateScreen(),
+      GroupInfoScreen(),
+      InformationScreen(),
+      SettingsScreen(),
+    ];
+  }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+    });
+  }
+
+  void _updateAlarmStatus(bool hasAlarm) {
+    setState(() {
+      _hasActiveAlarm = hasAlarm;
     });
   }
 
@@ -41,19 +55,49 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: Center(child: _widgetOptions.elementAt(_selectedIndex)),
+      body: IndexedStack(index: _selectedIndex, children: _widgetOptions),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'Đồng hồ'),
-          BottomNavigationBarItem(icon: Icon(Icons.translate), label: 'Dịch'),
+        items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
+            icon: _hasActiveAlarm
+                ? Stack(
+                    children: [
+                      const Icon(Icons.alarm),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                : const Icon(Icons.alarm),
+            label: 'Đồng hồ',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.translate),
+            label: 'Dịch',
+          ),
+          const BottomNavigationBarItem(
             icon: Icon(Icons.camera_alt),
             label: 'Camera',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Nhóm'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Thông tin'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Cài đặt'),
+          const BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Nhóm'),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Thông tin',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: 'Cài đặt',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue.shade700,

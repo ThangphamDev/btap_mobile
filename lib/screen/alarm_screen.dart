@@ -8,7 +8,9 @@ import 'package:timezone/data/latest.dart' as tz;
 import 'dart:async';
 
 class AlarmScreen extends StatefulWidget {
-  const AlarmScreen({super.key});
+  final Function(bool)? onAlarmStatusChanged;
+
+  const AlarmScreen({super.key, this.onAlarmStatusChanged});
 
   @override
   State<AlarmScreen> createState() => _AlarmScreenState();
@@ -142,6 +144,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
     await _showNotification(alarmDateTime);
 
+    // Thông báo cho HomeScreen
+    widget.onAlarmStatusChanged?.call(true);
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -249,6 +254,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
       _isAlarmRinging = true;
     });
 
+    // Thông báo cho HomeScreen
+    widget.onAlarmStatusChanged?.call(true);
+
     // Phát âm thanh báo thức
     try {
       // Sử dụng âm thanh hệ thống Android
@@ -306,6 +314,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
       _alarmTime = null;
       _recognizedText = '';
     });
+
+    // Thông báo cho HomeScreen
+    widget.onAlarmStatusChanged?.call(false);
 
     // Hủy timer báo thức
     _alarmTimer?.cancel();
