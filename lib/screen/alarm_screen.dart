@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'dart:async';
 
 class AlarmScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   late Timer _clockTimer;
   DateTime _currentTime = DateTime.now();
   bool _isAlarmRinging = false;
+  late AudioPlayer _audioPlayer;
 
   static const platform = MethodChannel('alarm_channel');
 
@@ -30,6 +32,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
+    _audioPlayer = AudioPlayer();
     _startClock();
     _initializeNotifications();
   }
@@ -54,15 +57,13 @@ class _AlarmScreenState extends State<AlarmScreen> {
   void dispose() {
     _alarmTimer?.cancel();
     _clockTimer.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
   Future<void> _listen() async {
     if (!_isListening) {
-      bool available = await _speech.initialize(
-        onStatus: (status) => print('Status: $status'),
-        onError: (error) => print('Error: $error'),
-      );
+      bool available = await _speech.initialize();
 
       if (available) {
         setState(() => _isListening = true);
@@ -199,46 +200,68 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   Future<void> _showNotification(DateTime dateTime) async {
-    const AndroidNotificationChannel channel = AndroidNotificationChannel(
-      'alarm_channel',
-      'Báo thức',
-      description: 'Thông báo báo thức từ ứng dụng',
-      importance: Importance.max,
-      playSound: true,
-    );
+    try {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'alarm_channel',
+        'Báo thức',
+        description: 'Thông báo báo thức từ ứng dụng',
+        importance: Importance.max,
+        playSound: true,
+      );
 
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.createNotificationChannel(channel);
+      await _notifications
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(channel);
 
-    const AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-          'alarm_channel',
-          'Báo thức',
-          channelDescription: 'Thông báo báo thức từ ứng dụng',
-          importance: Importance.max,
-          priority: Priority.high,
-          playSound: true,
-        );
+      const AndroidNotificationDetails androidDetails =
+          AndroidNotificationDetails(
+            'alarm_channel',
+            'Báo thức',
+            channelDescription: 'Thông báo báo thức từ ứng dụng',
+            importance: Importance.max,
+            priority: Priority.high,
+            playSound: true,
+          );
 
-    const NotificationDetails notificationDetails = NotificationDetails(
-      android: androidDetails,
-    );
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+      );
 
-    await _notifications.show(
-      0,
-      'Báo thức',
-      'Báo thức đã được đặt lúc ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}',
-      notificationDetails,
-    );
+      await _notifications.show(
+        0,
+        'Báo thức',
+        'Báo thức đã được đặt lúc ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}',
+        notificationDetails,
+      );
+    } catch (e) {
+      // Silent fail - notification is optional
+    }
   }
 
   void _triggerAlarm() async {
     setState(() {
       _isAlarmRinging = true;
     });
+
+    // Phát âm thanh báo thức
+    try {
+      // Sử dụng âm thanh hệ thống Android
+      await _audioPlayer.setSource(
+        UrlSource('https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'),
+      );
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.setVolume(1.0);
+      await _audioPlayer.resume();
+    } catch (e) {
+      // Fallback: sử dụng âm thanh hệ thống
+      try {
+        await SystemSound.play(SystemSoundType.alert);
+      } catch (e2) {
+        // Silent fail
+      }
+    }
 
     // Hiển thị dialog báo thức
     if (mounted) {
@@ -254,9 +277,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () {
-                  setState(() {
-                    _isAlarmRinging = false;
-                  });
+                  _stopAlarm();
                   Navigator.of(context).pop();
                 },
                 child: const Text('Tắt báo thức'),
@@ -266,6 +287,25 @@ class _AlarmScreenState extends State<AlarmScreen> {
         },
       );
     }
+  }
+
+  void _stopAlarm() async {
+    setState(() {
+      _isAlarmRinging = false;
+    });
+
+    // Dừng âm thanh
+    await _audioPlayer.stop();
+
+    // Clear hết data cũ
+    setState(() {
+      _alarmTime = null;
+      _recognizedText = '';
+    });
+
+    // Hủy timer báo thức
+    _alarmTimer?.cancel();
+    _alarmTimer = null;
   }
 
   Widget _buildSimpleDigitalClock() {
