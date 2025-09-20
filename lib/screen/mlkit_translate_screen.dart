@@ -66,6 +66,7 @@ class _MLKitTranslateScreenState extends State<MLKitTranslateScreen> {
             _inputController.text = _voiceText;
           });
         },
+        localeId: 'vi_VN', // Set Vietnamese locale
       );
     }
   }
