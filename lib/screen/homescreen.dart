@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'alarm_screen.dart';
 import 'mlkit_translate_screen.dart';
+import 'camera_translate_screen.dart';
+import 'group_info_screen.dart';
 import 'information_screen.dart';
 import 'settings_screen.dart';
 
@@ -18,6 +20,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _widgetOptions = <Widget>[
     AlarmScreen(),
     MLKitTranslateScreen(),
+    CameraTranslateScreen(),
+    GroupInfoScreen(),
     InformationScreen(),
     SettingsScreen(),
   ];
@@ -43,6 +47,11 @@ class _HomeScreenState extends State<HomeScreen> {
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.alarm), label: 'Đồng hồ'),
           BottomNavigationBarItem(icon: Icon(Icons.translate), label: 'Dịch'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt),
+            label: 'Camera',
+          ),
+          BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Nhóm'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Thông tin'),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Cài đặt'),
         ],

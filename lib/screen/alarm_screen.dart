@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz;
 import 'dart:async';
 
 class AlarmScreen extends StatefulWidget {
@@ -35,6 +37,12 @@ class _AlarmScreenState extends State<AlarmScreen> {
     _audioPlayer = AudioPlayer();
     _startClock();
     _initializeNotifications();
+    _initializeTimezone();
+  }
+
+  void _initializeTimezone() {
+    tz.initializeTimeZones();
+    tz.setLocalLocation(tz.getLocation('Asia/Ho_Chi_Minh'));
   }
 
   void _startClock() {
@@ -200,44 +208,40 @@ class _AlarmScreenState extends State<AlarmScreen> {
   }
 
   Future<void> _showNotification(DateTime dateTime) async {
-    try {
-      const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        'alarm_channel',
-        'Báo thức',
-        description: 'Thông báo báo thức từ ứng dụng',
-        importance: Importance.max,
-        playSound: true,
-      );
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'alarm_channel',
+      'Báo thức',
+      description: 'Thông báo báo thức từ ứng dụng',
+      importance: Importance.max,
+      playSound: true,
+    );
 
-      await _notifications
-          .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin
-          >()
-          ?.createNotificationChannel(channel);
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.createNotificationChannel(channel);
 
-      const AndroidNotificationDetails androidDetails =
-          AndroidNotificationDetails(
-            'alarm_channel',
-            'Báo thức',
-            channelDescription: 'Thông báo báo thức từ ứng dụng',
-            importance: Importance.max,
-            priority: Priority.high,
-            playSound: true,
-          );
+    const AndroidNotificationDetails androidDetails =
+        AndroidNotificationDetails(
+          'alarm_channel',
+          'Báo thức',
+          channelDescription: 'Thông báo báo thức từ ứng dụng',
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: true,
+        );
 
-      const NotificationDetails notificationDetails = NotificationDetails(
-        android: androidDetails,
-      );
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+    );
 
-      await _notifications.show(
-        0,
-        'Báo thức',
-        'Báo thức đã được đặt lúc ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}',
-        notificationDetails,
-      );
-    } catch (e) {
-      // Silent fail - notification is optional
-    }
+    await _notifications.show(
+      0,
+      'Báo thức',
+      'Báo thức đã được đặt lúc ${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}',
+      notificationDetails,
+    );
   }
 
   void _triggerAlarm() async {
@@ -474,7 +478,7 @@ class _AlarmScreenState extends State<AlarmScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Pham Xuan Thang',
+          'Đồng hồ báo thức',
           style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         ),
         backgroundColor: Colors.white,
