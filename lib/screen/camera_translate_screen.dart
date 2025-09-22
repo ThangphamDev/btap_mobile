@@ -43,6 +43,9 @@ class _CameraTranslateScreenState extends State<CameraTranslateScreen> {
       );
 
       await _cameraController!.initialize();
+
+      // Tắt flash sau khi camera đã khởi tạo
+      await _cameraController!.setFlashMode(FlashMode.off);
       setState(() {
         _isInitialized = true;
       });

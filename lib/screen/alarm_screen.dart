@@ -122,8 +122,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
   Future<void> _setAlarm(int hour, int minute) async {
     _alarmTimer?.cancel();
-    final now = DateTime.now();
-    DateTime alarmDateTime = DateTime(
+    final now = tz.TZDateTime.now(tz.local);
+    tz.TZDateTime alarmDateTime = tz.TZDateTime(
+      tz.local,
       now.year,
       now.month,
       now.day,
@@ -143,9 +144,6 @@ class _AlarmScreenState extends State<AlarmScreen> {
     });
 
     await _showNotification(alarmDateTime);
-
-    // Thông báo cho HomeScreen
-    widget.onAlarmStatusChanged?.call(true);
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -259,9 +257,9 @@ class _AlarmScreenState extends State<AlarmScreen> {
 
     // Phát âm thanh báo thức
     try {
-      // Sử dụng âm thanh hệ thống Android
+      // Sử dụng âm thanh báo thức local
       await _audioPlayer.setSource(
-        UrlSource('https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'),
+        AssetSource('sounds/day-di-ban-oi-nhacchuongviet.com.mp3'),
       );
       await _audioPlayer.setReleaseMode(ReleaseMode.loop);
       await _audioPlayer.setVolume(1.0);
